@@ -1,14 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { getProductById, updateProduct, getMediaLibrary, uploadFile, updateMediaInfo, deleteMediaFile, MediaFile } from '@/services/api';
+import { getProductById, updateProduct, MediaFile } from '@/services/api';
 import toast from 'react-hot-toast';
 
-// Import TinyMCE
+// Import TinyMCE & Component Media
 import { Editor } from '@tinymce/tinymce-react';
-
-// Import Media Modal Component
 import MediaModal from '@/components/MediaModal';
 
 const CATEGORIES = [
@@ -40,7 +38,7 @@ export default function EditProductWPStyle() {
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
     
-    // Ref để điều khiển TinyMCE
+    // Ref điều khiển TinyMCE
     const editorRef = useRef<any>(null);
 
     // Form Data
@@ -49,10 +47,11 @@ export default function EditProductWPStyle() {
         category_id: 1,
         sku: '',
         summary: '',
-        description: '', // HTML content
+        description: '', 
         status: 'active',
         thumbnail: '',
-        images: [] as string[]
+        images: [] as string[],
+        slug: '' // Thêm slug vào state để hiển thị
     });
 
     const [specs, setSpecs] = useState([{ key: 'Tải trọng', value: '' }]);
@@ -76,7 +75,8 @@ export default function EditProductWPStyle() {
                     description: data.description || '',
                     status: data.status || 'active',
                     thumbnail: data.thumbnail || '',
-                    images: Array.isArray(data.images) ? data.images : []
+                    images: Array.isArray(data.images) ? data.images : [],
+                    slug: data.slug || toSlug(data.name || '')
                 });
 
                 // Load thông số kỹ thuật
@@ -109,10 +109,20 @@ export default function EditProductWPStyle() {
         loadData();
     }, [productId, router]);
 
-    // --- LOGIC FORM ---
+    // --- HANDLERS ---
     const handleChange = (e: any) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    // Xử lý khi nhập tên -> Tự động tạo slug
+    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const name = e.target.value;
+        setFormData(prev => ({ 
+            ...prev, 
+            name: name,
+            slug: toSlug(name) // Tự động cập nhật slug
+        }));
     };
 
     const handleSpecChange = (index: number, field: 'key' | 'value', value: string) => {
@@ -127,13 +137,12 @@ export default function EditProductWPStyle() {
         setSpecs(newSpecs);
     };
 
-    // --- LOGIC MEDIA ---
+    // --- MEDIA ---
     const openMedia = (mode: 'thumbnail' | 'gallery' | 'editor') => {
         setMediaMode(mode);
         setIsMediaOpen(true);
     };
 
-    // Xử lý khi chọn ảnh xong từ Modal
     const handleMediaSelect = (files: MediaFile[]) => {
         const urls = files.map(f => f.url);
         if (urls.length === 0) return;
@@ -143,10 +152,9 @@ export default function EditProductWPStyle() {
         } else if (mediaMode === 'gallery') {
             setFormData(prev => ({ ...prev, images: [...prev.images, ...urls] }));
         } else if (mediaMode === 'editor') {
-            // Chèn ảnh vào TinyMCE
             if (editorRef.current) {
                 files.forEach(file => {
-                    const altText = file.alt_text || file.title || 'Product Image';
+                    const altText = file.alt_text || file.title || formData.name;
                     editorRef.current.insertContent(`<img src="${file.url}" alt="${altText}" style="max-width: 100%; height: auto;" />`);
                 });
             }
@@ -195,7 +203,7 @@ export default function EditProductWPStyle() {
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
                     <button onClick={() => router.back()} className="text-gray-400 hover:text-gray-600 mr-2"><i className="fas fa-arrow-left"></i></button>
-                    Sửa Sản Phẩm: {formData.name}
+                    Sửa Sản Phẩm
                 </h1>
             </div>
 
@@ -204,20 +212,20 @@ export default function EditProductWPStyle() {
                 {/* --- CỘT TRÁI --- */}
                 <div className="xl:col-span-3 space-y-6">
                     
-                    {/* Title */}
+                    {/* Title & Slug */}
                     <div className="bg-white p-4 rounded border border-gray-200 shadow-sm">
                         <input 
                             type="text" 
                             name="name"
                             placeholder="Tên sản phẩm"
-                            className="w-full text-xl font-bold border border-gray-300 rounded px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition placeholder-gray-400 text-gray-900"
+                            className="w-full text-xl font-bold border border-gray-300 rounded px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition placeholder-gray-400 text-gray-900" // text-gray-900: Màu chữ đậm
                             value={formData.name}
-                            onChange={handleChange}
+                            onChange={handleNameChange} // Dùng hàm handle riêng để update slug
                         />
-                        <div className="mt-2 text-xs text-gray-500 flex gap-2">
+                        <div className="mt-2 text-xs text-gray-500 flex gap-2 items-center">
                             <span>Đường dẫn tĩnh:</span>
-                            <span className="text-blue-600 font-medium cursor-pointer hover:underline">
-                                {formData.name ? `/san-pham/${toSlug(formData.name)}` : '...'}
+                            <span className="text-blue-600 font-medium bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                                /san-pham/{formData.slug}
                             </span>
                         </div>
                     </div>
@@ -237,13 +245,14 @@ export default function EditProductWPStyle() {
                         
                         <div className="bg-white">
                             <Editor
-                                apiKey="0w361rknr4d40qdb3nwzx8fsbgwh99do4iqahn4igaiivbcp" // API Key
+                                apiKey="0w361rknr4d40qdb3nwzx8fsbgwh99do4iqahn4igaiivbcp" // API Key của bạn
                                 onInit={(evt, editor) => editorRef.current = editor}
                                 value={formData.description}
                                 onEditorChange={(newValue) => setFormData(prev => ({ ...prev, description: newValue }))}
                                 init={{
                                     height: 500,
                                     menubar: false,
+                                    // ĐÃ XÓA PLUGIN 'AI' ĐỂ KHÔNG BỊ LỖI
                                     plugins: [
                                         'code', 'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount',
                                         'checklist', 'mediaembed', 'casechange', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable', 'advcode', 'advtemplate', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown','importword', 'exportword', 'exportpdf'
@@ -251,7 +260,7 @@ export default function EditProductWPStyle() {
                                     toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat | code',
                                     tinycomments_mode: 'embedded',
                                     tinycomments_author: 'Admin',
-                                    content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+                                    content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px; color: #111827; }' // Chỉnh màu chữ trong editor luôn
                                 }}
                             />
                         </div>
@@ -271,14 +280,14 @@ export default function EditProductWPStyle() {
                             <div className="col-span-2">
                                 <div className="flex justify-between items-center mb-2">
                                     <label className="block text-sm font-bold text-gray-600">Thông số kỹ thuật</label>
-                                    <button type="button" onClick={() => setSpecs([...specs, { key: '', value: '' }])} className="text-xs text-blue-600 hover:underline">+ Thêm dòng</button>
+                                    <button type="button" onClick={addSpecRow} className="text-xs text-blue-600 hover:underline">+ Thêm dòng</button>
                                 </div>
                                 <div className="space-y-2 bg-gray-50 p-4 rounded border border-gray-200">
                                     {specs.map((spec, idx) => (
                                         <div key={idx} className="flex gap-2">
                                             <input type="text" className="flex-1 px-2 py-1.5 border rounded text-sm text-gray-900" placeholder="Tên (VD: Tải trọng)" value={spec.key} onChange={(e) => handleSpecChange(idx, 'key', e.target.value)} />
                                             <input type="text" className="flex-1 px-2 py-1.5 border rounded text-sm text-gray-900" placeholder="Giá trị (VD: 500kg)" value={spec.value} onChange={(e) => handleSpecChange(idx, 'value', e.target.value)} />
-                                            <button type="button" onClick={() => setSpecs(specs.filter((_, i) => i !== idx))} className="text-red-500 hover:text-red-700 px-1"><i className="fas fa-times"></i></button>
+                                            <button type="button" onClick={() => removeSpecRow(idx)} className="text-red-500 hover:text-red-700 px-1"><i className="fas fa-times"></i></button>
                                         </div>
                                     ))}
                                 </div>
@@ -371,12 +380,12 @@ export default function EditProductWPStyle() {
                 </div>
             </form>
 
-            {/* MEDIA MODAL COMPONENT */}
+            {/* MEDIA MODAL (REUSABLE) */}
             <MediaModal 
                 isOpen={isMediaOpen} 
                 onClose={() => setIsMediaOpen(false)} 
-                onSelect={handleMediaSelect}
-                mode={mediaMode === 'thumbnail' || mediaMode === 'editor' ? 'single' : 'multiple'}
+                onSelect={handleMediaSelect} 
+                mode={mediaMode === 'gallery' ? 'multiple' : 'single'} 
                 title={mediaMode === 'thumbnail' ? 'Đặt ảnh đại diện' : mediaMode === 'gallery' ? 'Thêm vào album' : 'Chèn vào bài viết'}
             />
         </div>

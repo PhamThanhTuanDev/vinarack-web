@@ -53,6 +53,7 @@ export default function Header() {
                             <Link href="/services" className={`transition ${isActive('/services')}`}>Dịch vụ</Link>
                             <Link href="/projects" className={`transition ${isActive('/projects')}`}>Dự án</Link>
                             <Link href="/news" className={`transition ${isActive('/news')}`}>Tin tức</Link>
+                            <Link href="/recruitment" className={`transition ${isActive('/recruitment')}`}>Tuyển dụng</Link>
                             <Link href="/contact" className={`transition ${isActive('/contact')}`}>Liên hệ</Link>
                             <Link href="/contact" className="px-6 py-2 bg-[#f97316] text-white rounded font-bold hover:bg-orange-700 transition shadow-lg transform hover:-translate-y-0.5">
                                 Báo Giá

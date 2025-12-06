@@ -19,10 +19,14 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'plus.unsplash.com',
       },
-      // Thêm domain hosting thật của bạn sau này (ví dụ: vinarack.vn)
+      {
+        protocol: 'https',
+        hostname: 'i.pinimg.com', // <--- Đã thêm dòng này để fix lỗi
+      },
+      // Sau này nếu bạn up ảnh lên hosting thật (ví dụ: vinarack.vn), 
+      // hãy nhớ thêm domain đó vào đây nhé.
     ],
   },
 };
 
 export default nextConfig;
-

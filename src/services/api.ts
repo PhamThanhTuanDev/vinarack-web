@@ -38,6 +38,38 @@ export interface ProductPayload {
     images?: string[];
 }
 
+
+// Interface cho Dự Án (Project) - Dùng khi hiển thị
+export interface Project {
+    id: number;
+    title: string;
+    slug: string;
+    customer_name?: string;
+    location?: string;
+    scale?: string;
+    industry?: string;
+    content?: string;
+    thumbnail_url?: string;
+    is_featured?: boolean;
+    technical_specs?: any; // JSON object hoặc string
+    images?: string[]; // <--- Quan trọng: Album ảnh dự án
+    created_at: string;
+}
+
+// Payload cho Dự Án (Dùng khi Thêm/Sửa)
+export interface ProjectPayload {
+    title: string;
+    slug?: string;
+    customer_name?: string;
+    location?: string;
+    scale?: string;
+    industry?: string;
+    content?: string;
+    thumbnail_url?: string;
+    is_featured?: boolean;
+    technical_specs?: any;
+    images?: string[]; // <--- Quan trọng
+}
 // Kiểu dữ liệu cho Tin tức
 export interface NewsPayload {
     title: string;
@@ -141,6 +173,11 @@ export const getNews = async () => {
     return response.data;
 };
 
+export const getNewsBySlug = async (slug: string) => {
+    const response = await api.get(`/news/${slug}`);
+    return response.data;
+};
+
 // Sửa any -> ContactPayload
 export const sendContact = async (data: ContactPayload) => {
     const response = await api.post('/contact', data);
@@ -211,6 +248,15 @@ export const deleteNews = async (id: number) => {
 // 3. Tuyển Dụng
 export const getAdminJobs = async () => {
     const response = await api.get('/admin/jobs');
+    return response.data;
+};
+
+// ---> THÊM HÀM NÀY (CHO PUBLIC) <---
+export const getJobBySlug = async (slug: string) => {
+    // API này cần Backend hỗ trợ. Tạm thời mình dùng API lấy tất cả rồi lọc ở frontend
+    // Hoặc giả lập API /api/jobs/:slug ở backend.
+    // Tốt nhất là thêm API này vào server.js như đã làm với Projects.
+    const response = await api.get(`/jobs/${slug}`);
     return response.data;
 };
 
@@ -287,6 +333,11 @@ export const deleteUser = async (id: number) => {
 export const getAdminProjects = async () => {
     const response = await api.get('/admin/projects');
     return response.data;
+};
+
+export const getProjectBySlug = async (slug: string) => {
+    const response = await api.get(`/projects/${slug}`);
+    return response.data as Project;
 };
 
 export const getProjectById = async (id: number) => {
