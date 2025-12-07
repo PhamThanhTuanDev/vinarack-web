@@ -30,7 +30,7 @@ export default async function Home() {
             />
         </div>
         <div className="container mx-auto px-4 text-center md:text-left relative z-10">
-          <div className="md:w-2/3">
+          <div className="md:w-2/3 fade-in-up">
             <span className="inline-block py-1 px-3 rounded bg-orange-600/20 text-orange-400 border border-orange-500/30 text-sm font-bold mb-4 tracking-wider uppercase backdrop-blur-sm">
               Giải pháp kho vận toàn diện
             </span>

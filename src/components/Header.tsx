@@ -15,7 +15,14 @@ export default function Header() {
     // -----------------------------------------------------
 
     // Hàm kiểm tra active menu
-    const isActive = (path: string) => pathname === path ? 'text-vinarackOrange' : 'text-gray-600 hover:text-vinarackOrange';
+    const isActive = (path: string) => {
+        // Xử lý trường hợp đặc biệt cho trang chủ, chỉ active khi đường dẫn chính xác là "/"
+        if (path === '/') {
+            return pathname === path ? 'text-[#f97316] font-semibold' : 'text-gray-600 hover:text-[#f97316]';
+        }
+        // Đối với các trang khác, active nếu đường dẫn hiện tại bắt đầu bằng path của link
+        return pathname.startsWith(path) ? 'text-[#f97316] font-semibold' : 'text-gray-600 hover:text-[#f97316]';
+    };
 
     return (
         <header className="sticky top-0 z-50">
@@ -51,6 +58,7 @@ export default function Header() {
                             <Link href="/" className={`transition ${isActive('/')}`}>Trang chủ</Link>
                             <Link href="/products" className={`transition ${isActive('/products')}`}>Sản phẩm</Link>
                             <Link href="/services" className={`transition ${isActive('/services')}`}>Dịch vụ</Link>
+                            <Link href="/capacity" className={`transition ${isActive('/capacity')}`}>Năng lực sản xuất</Link>
                             <Link href="/projects" className={`transition ${isActive('/projects')}`}>Dự án</Link>
                             <Link href="/news" className={`transition ${isActive('/news')}`}>Tin tức</Link>
                             <Link href="/recruitment" className={`transition ${isActive('/recruitment')}`}>Tuyển dụng</Link>
@@ -75,12 +83,20 @@ export default function Header() {
                 {/* Mobile Menu Panel */}
                 {isMobileMenuOpen && (
                     <div className="md:hidden bg-white border-t border-gray-100 absolute w-full left-0 shadow-lg">
-                        <Link href="/" className="block py-3 px-4 text-[#0f3a68] font-bold bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}>Trang chủ</Link>
-                        <Link href="/products" className="block py-3 px-4 text-gray-600 hover:bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}>Sản phẩm</Link>
-                        <Link href="/services" className="block py-3 px-4 text-gray-600 hover:bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}>Dịch vụ</Link>
-                        <Link href="/projects" className="block py-3 px-4 text-gray-600 hover:bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}>Dự án</Link>
-                        <Link href="/news" className="block py-3 px-4 text-gray-600 hover:bg-gray-50" onClick={() => setIsMobileMenuOpen(false)}>Tin tức</Link>
-                        <Link href="/contact" className="block py-3 px-4 text-[#f97316] font-bold" onClick={() => setIsMobileMenuOpen(false)}>Nhận báo giá</Link>
+                        <div className="py-2 flex flex-col font-medium">
+                            <Link href="/" className={`block py-3 px-4 transition ${isActive('/')}`} onClick={() => setIsMobileMenuOpen(false)}>Trang chủ</Link>
+                            <Link href="/products" className={`block py-3 px-4 transition ${isActive('/products')}`} onClick={() => setIsMobileMenuOpen(false)}>Sản phẩm</Link>
+                            <Link href="/services" className={`block py-3 px-4 transition ${isActive('/services')}`} onClick={() => setIsMobileMenuOpen(false)}>Dịch vụ</Link>
+                            <Link href="/projects" className={`block py-3 px-4 transition ${isActive('/projects')}`} onClick={() => setIsMobileMenuOpen(false)}>Dự án</Link>
+                            <Link href="/news" className={`block py-3 px-4 transition ${isActive('/news')}`} onClick={() => setIsMobileMenuOpen(false)}>Tin tức</Link>
+                            <Link href="/recruitment" className={`block py-3 px-4 transition ${isActive('/recruitment')}`} onClick={() => setIsMobileMenuOpen(false)}>Tuyển dụng</Link>
+                            <Link href="/contact" className={`block py-3 px-4 transition ${isActive('/contact')}`} onClick={() => setIsMobileMenuOpen(false)}>Liên hệ</Link>
+                            <div className="px-4 pt-3 pb-4 mt-2 border-t border-gray-100">
+                                <Link href="/contact" className="block w-full text-center px-6 py-3 bg-[#f97316] text-white rounded font-bold hover:bg-orange-700 transition shadow-md" onClick={() => setIsMobileMenuOpen(false)}>
+                                    Nhận Báo Giá
+                                </Link>
+                            </div>
+                        </div>
                     </div>
                 )}
             </nav>
